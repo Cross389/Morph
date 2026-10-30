@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Morph</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="side">
+      <div class="side-head">
+        <button class="side-new" id="btnNewChat" type="button">+ 新建会话</button>
+      </div>
+      <div class="side-list" id="sideList"></div>
+    </aside>
+
+    <div class="main">
+      <main class="stream" id="stream"></main>
+
+      <footer class="dock">
+      <div class="composer" id="composer">
+        <div class="composer-top">
+          <button class="pill" id="modelPill" type="button" title="切换模型">
+            <span class="pill-dot"></span>
+            <span class="pill-text" id="modelPillText">未配置接口</span>
+            <svg viewBox="0 0 20 20" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8l4 4 4-4"/></svg>
+          </button>
+          <button class="pill" id="reasonPill" type="button" title="推理强度">
+            <span class="pill-k">推理</span>
+            <span class="pill-text" id="reasonPillText">自动</span>
+          </button>
+        </div>
+
+        <textarea id="input" rows="1" placeholder="和我说说你想让它变成什么样……"></textarea>
+        <div class="composer-bar">
+          <label class="switch" title="开启后 AI 能直接修改这个程序的代码">
+            <input type="checkbox" id="agentToggle" checked />
+            <span class="track"><span class="knob"></span></span>
+            <span class="switch-label">允许改动本软件</span>
+          </label>
+          <div class="bar-right">
+            <span class="kbd-hint"><kbd>Enter</kbd> 发送 · <kbd>Shift</kbd>+<kbd>Enter</kbd> 换行</span>
+            <button class="send" id="btnSend" title="发送">
+              <svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10h11M11 5.5 15.5 10 11 14.5"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 模型 / 推理 快速选择 -->
+        <div class="picker" id="picker" hidden>
+          <div class="picker-sec">选择模型</div>
+          <div class="picker-list" id="pickerList"></div>
+          <div class="picker-sec">推理强度</div>
+          <div class="segmented small" id="pickerReason">
+            <button type="button" data-v="auto">自动</button>
+            <button type="button" data-v="off">关</button>
+            <button type="button" data-v="low">低</button>
+            <button type="button" data-v="medium">中</button>
+            <button type="button" data-v="high">高</button>
+          </div>
+          <button class="picker-manage" id="pickerManage" type="button">管理接口与 Key…</button>
+        </div>
+      </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- 设置 -->
+  <div class="modal" id="settingsModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>AI 设置</h2>
+        <button class="icon-btn" data-close>✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="conn-list" id="connList"></div>
+        <button class="add-conn" id="btnAddConn" type="button">+ 添加一个接口</button>
+
+        <div class="field" style="margin-top:18px">
+          <label>推理强度</label>
+          <div class="segmented" id="fReason">
+            <button type="button" data-v="auto">自动</button>
+            <button type="button" data-v="off">关</button>
+            <button type="button" data-v="low">低</button>
+            <button type="button" data-v="medium">中</button>
+            <button type="button" data-v="high">高</button>
+          </div>
+          <p class="tip">发给接口的 reasoning_effort 参数。部分模型不支持，会自动忽略。</p>
+        </div>
+
+        <div class="field">
+          <label>AI 权限 <span class="tip-inline" id="permHint">沙箱</span></label>
+          <div class="segmented" id="fPerm">
+            <button type="button" data-v="sandbox">沙箱</button>
+            <button type="button" data-v="full">完全权限</button>
+          </div>
+          <p class="tip" id="permTip">沙箱：AI 只能读写界面代码。完全权限：可执行系统命令、读写整机、并给自己写插件。</p>
+        </div>
+
+        <div class="field">
+          <label>温度 <span class="tip-inline">越低越稳，越高越发散</span></label>
+          <input id="fTemp" type="number" min="0" max="2" step="0.05" value="0.35" />
+        </div>
+
+        <details class="advanced">
+          <summary>高级设置</summary>
+          <div class="field">
+            <label>单次最大 token</label>
+            <input id="fMaxTokens" type="number" min="256" max="64000" step="256" value="8192" />
+            <p class="tip">一次回复的长度上限（含写进文件的代码）。长文件 AI 会自动分段写入，一般不用动；发现回复被截断再调大。</p>
+          </div>
+          <div class="field">
+            <label>自定义系统提示词（可选）</label>
+            <textarea id="fSystem" rows="3" placeholder="留空即使用 Morph 内置的提示词"></textarea>
+          </div>
+        </details>
+
+        <p class="tip">API Key 用 Windows DPAPI 加密后只保存在本机；每个接口各自独立，界面上只能看到末尾四位。</p>
+      </div>
+      <div class="modal-foot">
+        <span class="tip" id="connCount"></span>
+        <span class="grow"></span>
+        <button class="btn" data-close>取消</button>
+        <button class="btn primary" id="btnSaveSettings">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 插件 -->
+  <div class="modal" id="pluginsModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>插件</h2>
+        <button class="icon-btn" data-close-plugins>✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="conn-list" id="pluginList"></div>
+        <p class="tip">插件放在 <code>%APPDATA%\Morph\plugins\</code>。让 AI 写一个，它写完调用 plugins_reload 就会出现在这里。</p>
+        <p class="tip">插件工具只在「完全权限」下对模型可见，关掉开关就彻底不加载。</p>
+      </div>
+      <div class="modal-foot">
+        <span class="tip" id="pluginHint"></span>
+        <span class="grow"></span>
+        <button class="btn" id="btnReloadPlugins">重新加载</button>
+        <button class="btn" data-close-plugins>关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+  <script src="app.js"></script>
+</body>
+</html>
