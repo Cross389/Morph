@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>Morph</title>
+<link rel="stylesheet" href="shell.css" />
+<link rel="stylesheet" href="morph://user-shell/override.css" />
+</head>
+<body>
+  <header class="titlebar">
+    <div class="tb-left">
+      <img class="logo" src="logo.png" alt="" draggable="false" />
+      <span class="app-name">Morph</span>
+    </div>
+    <div class="tb-drag"></div>
+    <div class="tb-right">
+      <div class="tb-chip" id="tbModel" title="当前模型">—</div>
+      <button class="tb-btn" id="tbSave" title="保存当前版本">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 3.5h8.2l2.8 2.8v10.2a1 1 0 0 1-1 1h-10a1 1 0 0 1-1-1v-12a1 1 0 0 1 1-1z"/>
+          <path d="M7 3.5v4.3h5.6V3.5"/><rect x="7" y="11" width="6" height="6.5" rx="1"/>
+        </svg>
+      </button>
+      <button class="tb-btn" id="tbVersions" title="版本管理 (Ctrl+Shift+M)">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3.2 10a6.8 6.8 0 1 0 2-4.8"/><path d="M3 4v3.2h3.2"/><path d="M10 6.6V10l2.4 1.6"/>
+        </svg>
+      </button>
+      <button class="tb-btn" id="tbSettings" title="设置">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="2.6"/>
+          <path d="M10 2.6v1.8M10 15.6v1.8M17.4 10h-1.8M4.4 10H2.6M15.2 4.8l-1.3 1.3M6.1 13.9l-1.3 1.3M15.2 15.2l-1.3-1.3M6.1 6.1 4.8 4.8"/>
+        </svg>
+      </button>
+      <button class="tb-btn" id="tbPlugins" title="插件">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3.5a1.8 1.8 0 0 1 3.6 0V5h2.2a1 1 0 0 1 1 1v2.2h1.5a1.8 1.8 0 0 1 0 3.6H14.8V14a1 1 0 0 1-1 1H11.6v1.5a1.8 1.8 0 0 1-3.6 0V15H5.8a1 1 0 0 1-1-1v-2.2H3.3a1.8 1.8 0 0 1 0-3.6H4.8V6a1 1 0 0 1 1-1H8z"/>
+        </svg>
+      </button>
+      <span class="tb-sep"></span>
+      <button class="tb-btn" id="btnReload" title="重新加载界面 (Ctrl+R)">
+        <svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16.8 10a6.8 6.8 0 1 1-2-4.8"/><path d="M17 4v3.2h-3.2"/>
+        </svg>
+      </button>
+      <span class="tb-sep"></span>
+      <button class="tb-btn win" id="btnMin" title="最小化">
+        <svg viewBox="0 0 12 12" width="11" height="11"><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="tb-btn win" id="btnMax" title="最大化">
+        <svg viewBox="0 0 12 12" width="11" height="11" fill="none"><rect x="2.6" y="2.6" width="6.8" height="6.8" rx="1.2" stroke="currentColor" stroke-width="1.2"/></svg>
+      </button>
+      <button class="tb-btn win close" id="btnClose" title="关闭">
+        <svg viewBox="0 0 12 12" width="11" height="11"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="stage">
+    <iframe id="frame" src="morph://ui/index.html" title="应用界面"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-modals allow-popups allow-downloads"></iframe>
+
+    <div class="crash" id="crash" hidden>
+      <div class="crash-card">
+        <div class="crash-icon">!</div>
+        <h2 id="crashTitle">界面没有正常启动</h2>
+        <p id="crashDesc">可能是 AI 刚改的代码有错误。你可以回到某个保存过的版本，或者恢复出厂。</p>
+        <div class="crash-actions">
+          <button class="btn primary" data-act="versions">版本管理</button>
+          <button class="btn" data-act="factory">恢复出厂</button>
+          <button class="btn" data-act="reload">重新加载</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 版本管理（外壳自带，AI 改不到） -->
+  <div class="modal" id="versionsModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>版本管理</h2>
+        <button class="icon-btn" id="btnCloseVersions" title="关闭">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="hist-list" id="histList"></div>
+      </div>
+      <div class="modal-foot">
+        <span class="tip">版本要你自己存，程序不会自动备份。点名字可以改名。</span>
+        <span class="grow"></span>
+        <button class="btn" id="btnLock" title="把当前界面锁定为新的出厂基线">设为出厂</button>
+        <button class="btn" id="btnFactory" title="回到锁定的出厂基线">恢复出厂</button>
+        <button class="btn primary" id="btnSaveVer">保存当前版本</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts"></div>
+  <script src="shell.js"></script>
+</body>
+</html>

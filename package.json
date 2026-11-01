@@ -1,0 +1,74 @@
+{
+  "name": "morph-desktop",
+  "productName": "Morph",
+  "version": "1.0.0",
+  "description": "Morph - 一个可以被 AI 改写的桌面程序",
+  "main": "electron/main.js",
+  "author": "Morph",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "shot": "electron . --screenshot",
+    "dist": "electron-builder --win",
+    "dist:portable": "electron-builder --win portable",
+    "dist:nsis": "electron-builder --win nsis",
+    "dist:dir": "electron-builder --win --dir"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "app.morph.desktop",
+    "productName": "Morph",
+    "copyright": "Copyright © 2026 Cross-JIANG",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "electron/**/*",
+      "renderer/**/*",
+      "template/**/*",
+      "build/icon.png",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "Morph-${version}-setup.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Morph",
+      "deleteAppDataOnUninstall": false,
+      "runAfterFinish": true
+    },
+    "portable": {
+      "artifactName": "Morph-${version}-portable.${ext}",
+      "requestExecutionLevel": "user"
+    }
+  },
+  "allowScripts": {
+    "electron@33.4.11": true
+  }
+}
